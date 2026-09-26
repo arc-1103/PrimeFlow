@@ -53,6 +53,30 @@ def test_sparse_retriever_finds_known_phrase():
     assert top.source == "sparse"
 
 
+def test_pdf_chunks_carry_page_numbers():
+    with open(settings.chunks_path, encoding="utf-8") as f:
+        records = [json.loads(line) for line in f]
+    pdf_records = [r for r in records if r["doc_id"] == "equipment_policy"]
+    assert pdf_records, "expected chunks from the PDF-sourced document"
+    assert all(r["page"] is not None for r in pdf_records)
+
+
+def test_docx_chunks_carry_heading_sections():
+    with open(settings.chunks_path, encoding="utf-8") as f:
+        records = [json.loads(line) for line in f]
+    docx_records = [r for r in records if r["doc_id"] == "remote_work_policy"]
+    assert docx_records, "expected chunks from the DOCX-sourced document"
+    assert any("stipend" in r["section"].lower() for r in docx_records)
+
+
+def test_sparse_retriever_finds_pdf_sourced_phrase():
+    retriever = SparseRetriever()
+    results = retriever.retrieve("wireless microphone kit meeting room", top_k=3)
+    assert results
+    assert results[0].doc_id == "equipment_policy"
+    assert results[0].page is not None
+
+
 def test_dense_and_sparse_agree_on_distinct_topics():
     dense = DenseRetriever()
     sparse = SparseRetriever()
