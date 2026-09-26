@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-8000}:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./corpus:/srv/corpus
+      - ./data:/srv/data
+      - ./indexes:/srv/indexes
